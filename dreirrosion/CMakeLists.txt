@@ -25,6 +25,7 @@ function(do_target name path)
     if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
         set(extra_libs
             Ntdll.lib
+            Ws2_32.lib
         )
     endif()
 
