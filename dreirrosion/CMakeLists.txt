@@ -7,8 +7,9 @@ add_executable(the_bin main.cpp)
 # -------
 
 function(do_target name path)
-    set(output_path "${CMAKE_BINARY_DIR}/cargo/debug/lib${name}.a")
-    set(depfile_path "${CMAKE_BINARY_DIR}/cargo/debug/lib${name}.d")
+    set(binary_path ${CMAKE_BINARY_DIR}/cargo/debug/${CMAKE_STATIC_LIBRARY_PREFIX}${name})
+    set(output_path "${binary_path}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    set(depfile_path "${binary_path}.d")
     add_custom_command(
         OUTPUT ${output_path}
         DEPFILE ${depfile_path}
