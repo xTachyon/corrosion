@@ -26,6 +26,7 @@ function(do_target name path)
         set(extra_libs
             Ntdll.lib
             Ws2_32.lib
+            Userenv.lib
         )
     endif()
 
