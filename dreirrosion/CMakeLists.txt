@@ -21,11 +21,18 @@ function(do_target name path)
                 --manifest-path=${path}/Cargo.toml
                 --target-dir=${CMAKE_BINARY_DIR}/cargo
     )
+
+    if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        set(extra_libs
+            Ntdll.lib
+        )
+    endif()
+
     add_library(
         ${name} INTERFACE
         ${output_path}
     )
-    target_link_libraries(${name} INTERFACE ${output_path})
+    target_link_libraries(${name} INTERFACE ${output_path} ${extra_libs})
 endfunction()
 
 # -------
