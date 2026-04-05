@@ -6,10 +6,12 @@ add_executable(the_bin main.cpp)
 
 # -------
 
-function(do_target name path)
-    set(binary_path ${CMAKE_BINARY_DIR}/cargo/debug/${CMAKE_STATIC_LIBRARY_PREFIX}${name})
+function(_corrosion_import_crate crate_name manifest_path)
+    set(default_build_type_dir "$<IF:$<OR:$<CONFIG:Debug>,$<CONFIG:>>,debug,release>")
+    set(binary_path ${CMAKE_BINARY_DIR}/cargo/${default_build_type_dir}/${CMAKE_STATIC_LIBRARY_PREFIX}${crate_name})
     set(output_path "${binary_path}${CMAKE_STATIC_LIBRARY_SUFFIX}")
     set(depfile_path "${binary_path}.d")
+
     add_custom_command(
         OUTPUT ${output_path}
         DEPFILE ${depfile_path}
@@ -17,8 +19,9 @@ function(do_target name path)
         VERBATIM
         COMMAND
             cargo build
-                -p ${name}
-                --manifest-path=${path}/Cargo.toml
+                --package ${crate_name}
+                $<IF:$<CONFIG:Debug>,--profile=dev,--profile=release>
+                --manifest-path=${manifest_path}
                 --target-dir=${CMAKE_BINARY_DIR}/cargo
     )
 
@@ -31,13 +34,45 @@ function(do_target name path)
     endif()
 
     add_library(
-        ${name} INTERFACE
+        ${crate_name} INTERFACE
         ${output_path}
     )
-    target_link_libraries(${name} INTERFACE ${output_path} ${extra_libs})
+    add_custom_target(genexdebug COMMAND ${CMAKE_COMMAND} -E echo ${output_path})
+    target_link_libraries(${crate_name} INTERFACE ${output_path} ${extra_libs})
+endfunction()
+
+function(corrosion_import_crate)
+    set(OPTIONS)
+    set(ONE_VALUE_KEYWORDS MANIFEST_PATH)
+    set(MULTI_VALUE_KEYWORDS CRATES)
+    cmake_parse_arguments(ARG
+        "${OPTIONS}"
+        "${ONE_VALUE_KEYWORDS}"
+        "${MULTI_VALUE_KEYWORDS}"
+        ${ARGN}
+    )
+
+    get_cmake_property(IS_MULTI_CONFIG GENERATOR_IS_MULTI_CONFIG)
+
+    if (IS_MULTI_CONFIG)
+        set(configs ${CMAKE_CONFIGURATION_TYPES})
+    else()
+        set(configs ${CMAKE_BUILD_TYPE})
+    endif()
+
+    foreach(crate_name IN LISTS ARG_CRATES)
+        # foreach(config IN LISTS configs)
+            _corrosion_import_crate(${crate_name} ${ARG_MANIFEST_PATH})
+        # endforeach()
+    endforeach()
+    
 endfunction()
 
 # -------
 
-do_target(rust_lib ${CMAKE_SOURCE_DIR}/rust_lib)
+corrosion_import_crate(
+    MANIFEST_PATH ${CMAKE_SOURCE_DIR}/rust_lib/Cargo.toml
+    CRATES rust_lib
+)
+
 target_link_libraries(the_bin rust_lib)
