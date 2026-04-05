@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.21)
 
 project(the_build)
 
-add_executable(the_bin main.cpp)
 
 # -------
 
@@ -75,4 +74,5 @@ corrosion_import_crate(
     CRATES rust_lib
 )
 
+add_executable(the_bin main.cpp)
 target_link_libraries(the_bin rust_lib)
