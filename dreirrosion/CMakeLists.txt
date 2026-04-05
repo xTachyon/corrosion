@@ -8,23 +8,26 @@ project(the_build)
 function(_corrosion_import_crate crate_name manifest_path rustc_targets)
     set(default_build_type_dir "$<IF:$<OR:$<CONFIG:Debug>,$<CONFIG:>>,debug,release>")
 
-
     set(rustc_targets_flag "")
     set(depfile_paths "")
+    set(output_paths "")
     foreach (t IN LISTS rustc_targets)
         if (t STREQUAL "a")
             continue()
         endif()
-        set(rustc_targets_flag "${rustc_targets_flag} --target ${t}")
+        set(rustc_targets_flag ${rustc_targets_flag} --target ${t})
 
         set(binary_path ${CMAKE_BINARY_DIR}/cargo/${t}/${CMAKE_STATIC_LIBRARY_PREFIX}${crate_name})
+    
         set(output_path "${binary_path}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+        set(output_paths "${output_paths}${output_path}")
+
         set(depfile_path "${binary_path}.d")
         set(depfile_paths "${depfile_paths} --depfile ${depfile_path}")
     endforeach()
 
     add_custom_command(
-        OUTPUT ${output_path}
+        OUTPUT ${output_paths}
         BYPRODUCTS ${depfile_path}
         DEPFILE ${depfile_path}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/cargo
@@ -57,9 +60,9 @@ function(_corrosion_import_crate crate_name manifest_path rustc_targets)
 
     add_library(
         ${crate_name} INTERFACE
-        ${output_path}
+        ${output_paths}
     )
-    target_link_libraries(${crate_name} INTERFACE ${output_path} ${extra_libs})
+    target_link_libraries(${crate_name} INTERFACE ${output_paths} ${extra_libs})
 endfunction()
 
 function(corrosion_import_crate)
@@ -73,7 +76,7 @@ function(corrosion_import_crate)
         ${ARGN}
     )
     if (NOT ARG_RUSTC_TARGETS)
-        set(ARG_RUSTC_TARGETS a)
+        set(ARG_RUSTC_TARGETS x86_64-unknown-linux-gnu)
     endif()
 
     get_cmake_property(IS_MULTI_CONFIG GENERATOR_IS_MULTI_CONFIG)

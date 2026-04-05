@@ -10,6 +10,7 @@ def main():
     gen_dep_file_parser = subparsers.add_parser("gen_dep_file")
     gen_dep_file_parser.add_argument("--input")
     gen_dep_file_parser.add_argument("--manifest-path")
+    gen_dep_file_parser.add_argument("--depfile")
 
     args = parser.parse_args()
     print(args)
@@ -35,7 +36,7 @@ def main():
         manifest_path = i["manifest_path"]
         manifest_paths.append(manifest_path)
 
-    
+
 
     exit(1)
 
