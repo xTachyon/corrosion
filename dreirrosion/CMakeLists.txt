@@ -21,6 +21,7 @@ function(_corrosion_import_crate crate_name manifest_path rustc_targets)
 
     add_custom_command(
         OUTPUT ${output_path}
+        BYPRODUCTS ${depfile_path}
         DEPFILE ${depfile_path}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/cargo
         VERBATIM
@@ -34,6 +35,11 @@ function(_corrosion_import_crate crate_name manifest_path rustc_targets)
                 --target-dir=${CMAKE_BINARY_DIR}/cargo
                 ${rustc_targets_flag}
                 # -q
+        COMMAND
+            Python::Interpreter
+                ${CMAKE_SOURCE_DIR}/helper.py
+                gen_dep_file
+                --manifest-path=${manifest_path}
     )
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -73,6 +79,7 @@ function(corrosion_import_crate)
         set(configs ${CMAKE_BUILD_TYPE})
     endif()
 
+    find_package (Python COMPONENTS Interpreter)
     foreach(crate_name IN LISTS ARG_CRATES)
         _corrosion_import_crate(${crate_name} ${ARG_MANIFEST_PATH} ${ARG_RUSTC_TARGETS})
     endforeach()
@@ -86,7 +93,7 @@ if (CMAKE_OSX_ARCHITECTURES)
 endif()
 
 corrosion_import_crate(
-    MANIFEST_PATH ${CMAKE_SOURCE_DIR}/rust_lib/Cargo.toml
+    MANIFEST_PATH ${CMAKE_SOURCE_DIR}/rust_workspace/Cargo.toml
     CRATES rust_lib
     ${rustc_targets}
 )

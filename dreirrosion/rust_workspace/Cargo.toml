@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "rust_lib",
+    "rust_lib_two"
+]
+resolver = "3"
