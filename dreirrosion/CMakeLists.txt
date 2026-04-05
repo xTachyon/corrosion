@@ -17,12 +17,15 @@ function(_corrosion_import_crate crate_name manifest_path)
         DEPFILE ${depfile_path}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/cargo
         VERBATIM
+        USES_TERMINAL
+        JOB_SERVER_AWARE ON
         COMMAND
             cargo build
                 --package ${crate_name}
                 $<IF:$<CONFIG:Debug>,--profile=dev,--profile=release>
                 --manifest-path=${manifest_path}
                 --target-dir=${CMAKE_BINARY_DIR}/cargo
+                # -q
     )
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -37,7 +40,6 @@ function(_corrosion_import_crate crate_name manifest_path)
         ${crate_name} INTERFACE
         ${output_path}
     )
-    # add_custom_target(genexdebug COMMAND ${CMAKE_COMMAND} -E echo ${output_path})
     target_link_libraries(${crate_name} INTERFACE ${output_path} ${extra_libs})
 endfunction()
 
@@ -61,9 +63,7 @@ function(corrosion_import_crate)
     endif()
 
     foreach(crate_name IN LISTS ARG_CRATES)
-        # foreach(config IN LISTS configs)
-            _corrosion_import_crate(${crate_name} ${ARG_MANIFEST_PATH})
-        # endforeach()
+        _corrosion_import_crate(${crate_name} ${ARG_MANIFEST_PATH})
     endforeach()
     
 endfunction()
