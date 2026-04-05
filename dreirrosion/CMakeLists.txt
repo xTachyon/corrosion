@@ -37,7 +37,7 @@ function(_corrosion_import_crate crate_name manifest_path)
         ${crate_name} INTERFACE
         ${output_path}
     )
-    add_custom_target(genexdebug COMMAND ${CMAKE_COMMAND} -E echo ${output_path})
+    # add_custom_target(genexdebug COMMAND ${CMAKE_COMMAND} -E echo ${output_path})
     target_link_libraries(${crate_name} INTERFACE ${output_path} ${extra_libs})
 endfunction()
 
