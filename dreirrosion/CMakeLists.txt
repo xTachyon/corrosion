@@ -7,16 +7,20 @@ project(the_build)
 
 function(_corrosion_import_crate crate_name manifest_path rustc_targets)
     set(default_build_type_dir "$<IF:$<OR:$<CONFIG:Debug>,$<CONFIG:>>,debug,release>")
-    set(binary_path ${CMAKE_BINARY_DIR}/cargo/${default_build_type_dir}/${CMAKE_STATIC_LIBRARY_PREFIX}${crate_name})
-    set(output_path "${binary_path}${CMAKE_STATIC_LIBRARY_SUFFIX}")
-    set(depfile_path "${binary_path}.d")
+
 
     set(rustc_targets_flag "")
+    set(depfile_paths "")
     foreach (t IN LISTS rustc_targets)
         if (t STREQUAL "a")
             continue()
         endif()
         set(rustc_targets_flag "${rustc_targets_flag} --target ${t}")
+
+        set(binary_path ${CMAKE_BINARY_DIR}/cargo/${t}/${CMAKE_STATIC_LIBRARY_PREFIX}${crate_name})
+        set(output_path "${binary_path}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+        set(depfile_path "${binary_path}.d")
+        set(depfile_paths "${depfile_paths} --depfile ${depfile_path}")
     endforeach()
 
     add_custom_command(
@@ -40,6 +44,7 @@ function(_corrosion_import_crate crate_name manifest_path rustc_targets)
                 ${CMAKE_SOURCE_DIR}/helper.py
                 gen_dep_file
                 --manifest-path=${manifest_path}
+                ${depfile_paths}
     )
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
